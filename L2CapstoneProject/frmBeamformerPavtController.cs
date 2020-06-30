@@ -12,6 +12,13 @@ namespace L2CapstoneProject
         NIRfsg rfsg;
         RFmxInstrMX instr;
 
+        public struct PhaseAmplitudeOffset 
+        {
+            public double phase { get; set; }
+            public double amplitude { get; set; }
+                        
+        }
+
         public frmBeamformerPavtController()
         {
             InitializeComponent();
