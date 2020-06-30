@@ -43,6 +43,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BeamformerBase.cs" />
     <Compile Include="frmBeamformerPavtController.cs">
       <SubType>Form</SubType>
     </Compile>

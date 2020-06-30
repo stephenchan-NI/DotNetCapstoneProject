@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Windows.Forms;
+using L2CapstoneProject;
 
 namespace L2CapstoneProject
 {
     public partial class frmOffset : Form
     {
+
+        public frmBeamformerPavtController.PhaseAmplitudeOffset phaseAmpOffset = new frmBeamformerPavtController.PhaseAmplitudeOffset();
+
         public enum Mode { Add, Edit }
 
         public Mode ViewMode { get; }
@@ -28,6 +32,11 @@ namespace L2CapstoneProject
         private void btnOk_Click(object sender, EventArgs e)
         {
             Close();
+            
+            phaseAmpOffset.amplitude = decimal.ToDouble(numAmp.Value);
+            phaseAmpOffset.phase = decimal.ToDouble(numPhase.Value);
+            
+
         }
     }
 }

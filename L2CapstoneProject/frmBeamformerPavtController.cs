@@ -132,6 +132,8 @@ namespace L2CapstoneProject
             if (r == DialogResult.OK)
             {
                 // Add the offset to the listview
+                lsvOffsets.Items.Add(dialog.phaseAmpOffset.phase.ToString()).SubItems.Add(dialog.phaseAmpOffset.amplitude.ToString());
+                
             }
         }
         private void EditOffset(int selected)
