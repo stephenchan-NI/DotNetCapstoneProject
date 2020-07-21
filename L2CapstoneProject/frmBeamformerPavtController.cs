@@ -11,6 +11,7 @@ namespace L2CapstoneProject
     {
         NIRfsg rfsg;
         RFmxInstrMX instr;
+        string resourceName;
 
         public struct PhaseAmplitudeOffset 
         {
@@ -179,5 +180,13 @@ namespace L2CapstoneProject
         }
 
         #endregion
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            resourceName = rfsgNameComboBox.SelectedItem.ToString();
+            rfsg = new NIRfsg(resourceName, true, false);
+
+
+        }
     }
 }
