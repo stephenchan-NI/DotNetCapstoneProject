@@ -16,7 +16,6 @@ namespace L2CapstoneProject
         {
             public double phase { get; set; }
             public double amplitude { get; set; }
-                        
         }
 
         public frmBeamformerPavtController()
