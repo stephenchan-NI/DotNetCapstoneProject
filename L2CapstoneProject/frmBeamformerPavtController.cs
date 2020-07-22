@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using NationalInstruments.ModularInstruments.NIRfsg;
 using NationalInstruments.RFmx.InstrMX;
 using NationalInstruments.ModularInstruments.SystemServices.DeviceServices;
+using System.Collections.Generic;
 
 namespace L2CapstoneProject
 {
@@ -178,5 +179,23 @@ namespace L2CapstoneProject
         }
 
         #endregion
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            List<PhaseAmplitudeOffset> offsetTable = new List<PhaseAmplitudeOffset>();
+          
+            foreach (ListViewItem item in lsvOffsets.Items)
+            {
+                PhaseAmplitudeOffset tempSet = new PhaseAmplitudeOffset();
+                tempSet.phase = Convert.ToDouble(item.Text);
+                tempSet.amplitude = Convert.ToDouble(item.SubItems[1].Text);
+
+                offsetTable.Add(tempSet);
+            }
+
+            RfsgSequencedBeamformer seqBeam = new RfsgSequencedBeamformer(decimal.ToDouble(measurementLengthNumeric.Value), rfsgNameComboBox.SelectedItem.ToString());
+            seqBeam.connect();
+            seqBeam.downloadPhaseAmplitudeOffset(offsetTable);
+        }
     }
 }

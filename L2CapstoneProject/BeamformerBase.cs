@@ -10,7 +10,7 @@ namespace L2CapstoneProject
     abstract class BeamformerBase
     {
         public abstract void connect();
-        public abstract void configurePhaseAmplitudeOffset(double phase, double amp)
+        public abstract void configurePhaseAmplitudeOffset(double phase, double amp);
         public abstract void commitPhaseAmplitudeRegister();
         public abstract void abort();
         public abstract void disconnect();

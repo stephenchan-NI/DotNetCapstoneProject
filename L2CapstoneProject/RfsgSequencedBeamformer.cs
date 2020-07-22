@@ -13,13 +13,13 @@ namespace L2CapstoneProject
     {
         private double sampleRate = 100e6;
         public double segmentLength { get; set; }
-        ComplexWaveform<ComplexDouble> sequenceWfm;
+        ComplexWaveform<ComplexDouble> sequenceWfm = new ComplexWaveform<ComplexDouble>(0);
 
         NIRfsg rfsgSession;
         string resourceName, waveformName, script, markerEventExportOutputTerminal;
         double centerFrequency, powerLevel, externalAttenuation;
         IntPtr rfsgHandle;
-        RfsgSequencedBeamformer(double measLength, string rfsgName)
+        public RfsgSequencedBeamformer(double measLength, string rfsgName)
         {
             segmentLength = measLength;
             resourceName = rfsgName;
@@ -36,7 +36,7 @@ namespace L2CapstoneProject
         }
         public override void configurePhaseAmplitudeOffset(double phase, double amp)
         {
-            double numSamples = sampleRate * segmentLength;
+            double numSamples = sampleRate * segmentLength/1000000;
             double real = Math.Cos(phase) * Math.Pow(amp / 10,10);
             double imag = Math.Sin(phase) * Math.Pow(amp / 10, 10);
             ComplexDouble phaseMag = new ComplexDouble(real, imag);
@@ -52,7 +52,7 @@ namespace L2CapstoneProject
                 double phase = phaseAmpOffset.phase;
                 configurePhaseAmplitudeOffset(phase, amp);
             }
-            throw new NotImplementedException();
+            
         }
 
         public override void connect()
