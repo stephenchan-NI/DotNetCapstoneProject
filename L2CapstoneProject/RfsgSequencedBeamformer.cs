@@ -47,8 +47,8 @@ namespace L2CapstoneProject
         public override void configurePhaseAmplitudeOffset(double phase, double amp)
         {
             double numSamples = sampleRate * segmentLength/1000000;
-            double real = Math.Cos(phase) * Math.Pow(amp / 10,10);
-            double imag = Math.Sin(phase) * Math.Pow(amp / 10, 10);
+            double real = Math.Sin(phase) * Math.Pow(10, amp / 10);
+            double imag = Math.Cos(phase) * Math.Pow(10, amp / 10);
             ComplexDouble phaseMag = new ComplexDouble(real, imag);
             ComplexDouble[] wfmArray = Enumerable.Repeat(phaseMag, Convert.ToInt32(numSamples)).ToArray();
             ComplexWaveform<ComplexDouble> wfm = ComplexWaveform<ComplexDouble>.FromArray1D(wfmArray);
