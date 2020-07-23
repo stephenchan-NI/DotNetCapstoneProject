@@ -12,6 +12,7 @@ namespace L2CapstoneProject
     {
         NIRfsg rfsg;
         RFmxInstrMX instr;
+        RfsgSequencedBeamformer seqBeam;
 
         public struct PhaseAmplitudeOffset 
         {
@@ -193,9 +194,16 @@ namespace L2CapstoneProject
                 offsetTable.Add(tempSet);
             }
 
-            RfsgSequencedBeamformer seqBeam = new RfsgSequencedBeamformer(decimal.ToDouble(measurementLengthNumeric.Value), rfsgNameComboBox.SelectedItem.ToString());
-            seqBeam.connect();
+            seqBeam = new RfsgSequencedBeamformer(decimal.ToDouble(measurementLengthNumeric.Value), rfsgNameComboBox.SelectedItem.ToString(), Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value));
             seqBeam.downloadPhaseAmplitudeOffset(offsetTable);
+            seqBeam.connect();
+            btnStop.Enabled = true;
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            seqBeam.disconnect();
+            btnStop.Enabled = false;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace L2CapstoneProject
 {
     class RfsgSequencedBeamformer : BeamformerBase
     {
-        private double sampleRate = 100e6;
+        private double sampleRate = 10e6;
         public double segmentLength { get; set; }
         ComplexWaveform<ComplexDouble> sequenceWfm = new ComplexWaveform<ComplexDouble>(0);
 
@@ -19,10 +19,12 @@ namespace L2CapstoneProject
         string resourceName, waveformName, script, markerEventExportOutputTerminal;
         double centerFrequency, powerLevel, externalAttenuation;
         IntPtr rfsgHandle;
-        public RfsgSequencedBeamformer(double measLength, string rfsgName)
+        public RfsgSequencedBeamformer(double measLength, string rfsgName, double power, double freq)
         {
             segmentLength = measLength;
             resourceName = rfsgName;
+            centerFrequency = freq;
+            powerLevel = power;
 
         }
         public override void abort()
@@ -32,7 +34,15 @@ namespace L2CapstoneProject
 
         public override void commitPhaseAmplitudeRegister()
         {
-            throw new NotImplementedException();
+
+            rfsgSession.Arb.WriteWaveform("waveform", sequenceWfm);
+            script = @"script GenerateWfmWithMarkerAtStart
+                     repeat forever
+                     generate waveform marker0(0)
+                  end repeat
+               end script";
+            rfsgSession.Arb.Scripting.WriteScript(script);
+
         }
         public override void configurePhaseAmplitudeOffset(double phase, double amp)
         {
@@ -52,22 +62,31 @@ namespace L2CapstoneProject
                 double phase = phaseAmpOffset.phase;
                 configurePhaseAmplitudeOffset(phase, amp);
             }
-            
+
         }
 
         public override void connect()
         {
             InitializeRfsg();
+            rfsgSession.Initiate();
         }
 
         public override void disconnect()
         {
-            throw new NotImplementedException();
+            rfsgSession.Abort();
+            rfsgSession.Close();
+            sequenceWfm = new ComplexWaveform<ComplexDouble>(0);
         }
         void InitializeRfsg()
         {
             rfsgSession = new NIRfsg(resourceName, true, false, "");
             rfsgHandle = rfsgSession.GetInstrumentHandle().DangerousGetHandle();
+            rfsgSession.Arb.IQRate = sampleRate;
+            rfsgSession.RF.PowerLevelType = RfsgRFPowerLevelType.PeakPower;
+            rfsgSession.Arb.GenerationMode = RfsgWaveformGenerationMode.Script;
+            rfsgSession.DeviceEvents.MarkerEvents[0].ExportedOutputTerminal = RfsgMarkerEventExportedOutputTerminal.PxiTriggerLine0;
+            rfsgSession.RF.Configure(centerFrequency, powerLevel);
+            commitPhaseAmplitudeRegister();
         }
     }
 }
