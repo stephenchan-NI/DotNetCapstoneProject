@@ -66,6 +66,7 @@
     <Compile Include="frmOffset.Designer.cs">
       <DependentUpon>frmOffset.cs</DependentUpon>
     </Compile>
+    <Compile Include="PavtMeasurement.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RfsgSequencedBeamformer.cs" />

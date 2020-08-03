@@ -197,6 +197,9 @@ namespace L2CapstoneProject
             seqBeam = new RfsgSequencedBeamformer(decimal.ToDouble(measurementLengthNumeric.Value), rfsgNameComboBox.SelectedItem.ToString(), Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value));
             seqBeam.downloadPhaseAmplitudeOffset(offsetTable);
             seqBeam.connect();
+
+            sa = new PavtMeasurement(rfsaNameComboBox.Text, Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value), Convert.ToDouble(measurementLengthNumeric.Value), Convert.ToDouble(measurementOffsetNumeric.Value), offsetTable.Count);
+
             btnStop.Enabled = true;
         }
 
