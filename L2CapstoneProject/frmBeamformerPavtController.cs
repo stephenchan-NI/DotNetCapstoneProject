@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using NationalInstruments.ModularInstruments.NIRfsg;
 using NationalInstruments.RFmx.InstrMX;
 using NationalInstruments.ModularInstruments.SystemServices.DeviceServices;
+using System.Collections.Generic;
 
 namespace L2CapstoneProject
 {
@@ -11,12 +12,12 @@ namespace L2CapstoneProject
     {
         NIRfsg rfsg;
         RFmxInstrMX instr;
+        RfsgSequencedBeamformer seqBeam;
 
         public struct PhaseAmplitudeOffset 
         {
             public double phase { get; set; }
             public double amplitude { get; set; }
-                        
         }
 
         public frmBeamformerPavtController()
@@ -179,5 +180,30 @@ namespace L2CapstoneProject
         }
 
         #endregion
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            List<PhaseAmplitudeOffset> offsetTable = new List<PhaseAmplitudeOffset>();
+          
+            foreach (ListViewItem item in lsvOffsets.Items)
+            {
+                PhaseAmplitudeOffset tempSet = new PhaseAmplitudeOffset();
+                tempSet.phase = Convert.ToDouble(item.Text);
+                tempSet.amplitude = Convert.ToDouble(item.SubItems[1].Text);
+
+                offsetTable.Add(tempSet);
+            }
+
+            seqBeam = new RfsgSequencedBeamformer(decimal.ToDouble(measurementLengthNumeric.Value), rfsgNameComboBox.SelectedItem.ToString(), Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value));
+            seqBeam.downloadPhaseAmplitudeOffset(offsetTable);
+            seqBeam.connect();
+            btnStop.Enabled = true;
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            seqBeam.disconnect();
+            btnStop.Enabled = false;
+        }
     }
 }
