@@ -11,7 +11,7 @@ namespace L2CapstoneProject
     public partial class frmBeamformerPavtController : Form
     {
         NIRfsg rfsg;
-        RFmxInstrMX instr;
+        PavtMeasurement sa;
         RfsgSequencedBeamformer seqBeam;
 
         public struct PhaseAmplitudeOffset 
@@ -105,9 +105,9 @@ namespace L2CapstoneProject
         private void CloseInstruments()
         {
             AbortGeneration();
-            rfsg?.Close();
+            seqBeam.close();
 
-            instr?.Close();
+            sa.close();
         }
         private void SetButtonState(bool started)
         {
@@ -183,6 +183,7 @@ namespace L2CapstoneProject
 
         private void btnStart_Click(object sender, EventArgs e)
         {
+            btnStop.Enabled = true;
             List<PhaseAmplitudeOffset> offsetTable = new List<PhaseAmplitudeOffset>();
           
             foreach (ListViewItem item in lsvOffsets.Items)
@@ -199,14 +200,29 @@ namespace L2CapstoneProject
             seqBeam.connect();
 
             sa = new PavtMeasurement(rfsaNameComboBox.Text, Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value), Convert.ToDouble(measurementLengthNumeric.Value), Convert.ToDouble(measurementOffsetNumeric.Value), offsetTable.Count);
-
-            btnStop.Enabled = true;
+            sa.connectRFmx();
+            sa.initiateMeasure();
+            var results = sa.fetchResults();
+            
+        }
+        private void populateResultsBox(PhaseAmplitudeOffset[] results)
+        {
+            int i = 0;
+            foreach (PhaseAmplitudeOffset result in results)
+            {
+                ListViewItem tempItem = new ListViewItem(i.ToString());
+                tempItem.SubItems.Add(result.phase.ToString());
+                tempItem.SubItems.Add(result.amplitude.ToString());
+                lsvResults.Items.Add(tempItem);
+                i++;
+            }
         }
 
         private void btnStop_Click(object sender, EventArgs e)
         {
             seqBeam.disconnect();
             btnStop.Enabled = false;
+            btnStart.Enabled = true;
         }
     }
 }

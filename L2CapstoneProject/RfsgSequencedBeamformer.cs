@@ -16,8 +16,8 @@ namespace L2CapstoneProject
         ComplexWaveform<ComplexDouble> sequenceWfm = new ComplexWaveform<ComplexDouble>(0);
 
         NIRfsg rfsgSession;
-        string resourceName, waveformName, script, markerEventExportOutputTerminal;
-        double centerFrequency, powerLevel, externalAttenuation;
+        string resourceName,  script;
+        double centerFrequency, powerLevel;
         IntPtr rfsgHandle;
         public RfsgSequencedBeamformer(double measLength, string rfsgName, double power, double freq)
         {
@@ -89,6 +89,11 @@ namespace L2CapstoneProject
             rfsgSession.DeviceEvents.MarkerEvents[0].ExportedOutputTerminal = RfsgMarkerEventExportedOutputTerminal.PxiTriggerLine0;
             rfsgSession.RF.Configure(centerFrequency, powerLevel);
             commitPhaseAmplitudeRegister();
+        }
+        public void close()
+        {
+            rfsgSession?.Abort();
+            rfsgSession?.Close();
         }
     }
 }
