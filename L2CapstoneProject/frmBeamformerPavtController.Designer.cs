@@ -232,11 +232,6 @@
             this.measurementOffsetNumeric.Name = "measurementOffsetNumeric";
             this.measurementOffsetNumeric.Size = new System.Drawing.Size(96, 20);
             this.measurementOffsetNumeric.TabIndex = 2;
-            this.measurementOffsetNumeric.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
             // 
             // powerLevelNumeric
             // 

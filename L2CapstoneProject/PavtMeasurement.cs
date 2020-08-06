@@ -10,7 +10,7 @@ namespace L2CapstoneProject
 {
     class PavtMeasurement
     {
-        RFmxInstrMX instrSession;
+        RFmxInstrMX instrSession = null;
         RFmxSpecAnMX specAn;
 
         string resourceName;
@@ -19,9 +19,11 @@ namespace L2CapstoneProject
         double segmentLength;
         double measureOffset;
         double externalAttenuation = 0;
-        double measurementBandwidth = 1e6;
+        //double measurementBandwidth = 1e6;
         int numSeg;
 
+
+        //double measurementLength;
 
 
         bool enableTrigger = true;
@@ -32,7 +34,8 @@ namespace L2CapstoneProject
 
 
         const int segmentStartTimeArraySize = 1;
-        double[] segmentStartTime = new double[segmentStartTimeArraySize];
+        double[] segmentStartTime;// = new double[numSeg];
+
 
         double[] meanRelativePhase = new double[0];                          /* (deg) */
         double[] meanRelativeAmplitude = new double[0];                      /* (dB) */
@@ -44,20 +47,33 @@ namespace L2CapstoneProject
             resourceName = rfsaName;
             refLevel = refLvl;
             freq = frequency;
-            segmentLength = measLength;
-            measureOffset = measOffset;
+            segmentLength = measLength/1e6;
+            measureOffset = measOffset/1e6;
             numSeg = numSegments;
+            
         }
 
-
+        
         private void InitializeInstr()
         {
             /* Create a new RFmx Session */
-            instrSession = new RFmxInstrMX(resourceName, "");
+            if (instrSession == null)
+            {
+                instrSession = new RFmxInstrMX(resourceName, "");
+            }
+            
         }
 
         private void ConfigureSpecAn()
         {
+            segmentStartTime = new double[numSeg];
+            for (int i = 0; i < numSeg; i++)
+            {
+                segmentStartTime[i] = segmentLength * i;
+            }
+
+            //measurementLength = numSeg * segmentLength;
+
             /* Get SpecAn signal */
             specAn = instrSession.GetSpecAnSignalConfiguration();
 
@@ -70,10 +86,12 @@ namespace L2CapstoneProject
 
 
             specAn.Pavt.Configuration.ConfigureMeasurementIntervalMode("", RFmxSpecAnMXPavtMeasurementIntervalMode.Uniform);
-            segmentStartTime[0] = 0;
+            
             specAn.Pavt.Configuration.ConfigureSegmentStartTimeList("", segmentStartTime);
-            specAn.Pavt.Configuration.ConfigureMeasurementBandwidth("", measurementBandwidth);
+            
             specAn.Pavt.Configuration.ConfigureMeasurementInterval("", measureOffset, segmentLength);
+
+            
 
         }
 
@@ -86,13 +104,14 @@ namespace L2CapstoneProject
         {
             specAn.Initiate("", "");
         }
-        public frmBeamformerPavtController.PhaseAmplitudeOffset[] fetchResults()
+        public frmBeamformerPavtController.PhaseAmplitudeOffset[] FetchResults()
         {
             specAn.Pavt.Results.FetchPhaseAndAmplitudeArray("", 10, ref meanRelativePhase,
                   ref meanRelativeAmplitude, ref meanAbsolutePhase, ref meanAbsoluteAmplitude);
 
             frmBeamformerPavtController.PhaseAmplitudeOffset[] resultsArray = new frmBeamformerPavtController.PhaseAmplitudeOffset[meanAbsoluteAmplitude.Length];
             int i = 0;
+            
             foreach (double amp in meanRelativeAmplitude)
             {
                 resultsArray[i].amplitude = amp;
@@ -101,7 +120,7 @@ namespace L2CapstoneProject
             }
             return resultsArray;
         }
-        public void close()
+        public void Close()
         {
             instrSession?.Close();
         }

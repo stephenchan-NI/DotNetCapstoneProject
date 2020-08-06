@@ -13,6 +13,7 @@ namespace L2CapstoneProject
         NIRfsg rfsg;
         PavtMeasurement sa;
         RfsgSequencedBeamformer seqBeam;
+        bool stopping = false;
 
         public struct PhaseAmplitudeOffset 
         {
@@ -88,7 +89,15 @@ namespace L2CapstoneProject
 
         private void frmBeamformerPavtController_FormClosing(object sender, FormClosingEventArgs e)
         {
-            CloseInstruments();
+            try
+            {
+                CloseInstruments();
+            }
+            catch
+            {  
+                //do nothing
+            }
+            
         }
 
         #endregion
@@ -107,7 +116,7 @@ namespace L2CapstoneProject
             AbortGeneration();
             seqBeam.close();
 
-            sa.close();
+            sa.Close();
         }
         private void SetButtonState(bool started)
         {
@@ -184,7 +193,10 @@ namespace L2CapstoneProject
         private void btnStart_Click(object sender, EventArgs e)
         {
             btnStop.Enabled = true;
+            btnStart.Enabled = false;
+            lsvResults.Items.Clear();
             List<PhaseAmplitudeOffset> offsetTable = new List<PhaseAmplitudeOffset>();
+            PhaseAmplitudeOffset[] results = new PhaseAmplitudeOffset[0];
           
             foreach (ListViewItem item in lsvOffsets.Items)
             {
@@ -201,11 +213,20 @@ namespace L2CapstoneProject
 
             sa = new PavtMeasurement(rfsaNameComboBox.Text, Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value), Convert.ToDouble(measurementLengthNumeric.Value), Convert.ToDouble(measurementOffsetNumeric.Value), offsetTable.Count);
             sa.connectRFmx();
-            sa.initiateMeasure();
-            var results = sa.fetchResults();
-            
+
         }
-        private void populateResultsBox(PhaseAmplitudeOffset[] results)
+
+        private void ContinuousFetch()
+        {
+            while (!stopping)
+            {
+                sa.initiateMeasure();
+                results = sa.FetchResults();
+                PopulateResultsBox(results);
+            }
+        }
+
+        private void PopulateResultsBox(PhaseAmplitudeOffset[] results)
         {
             int i = 0;
             foreach (PhaseAmplitudeOffset result in results)
@@ -221,6 +242,7 @@ namespace L2CapstoneProject
         private void btnStop_Click(object sender, EventArgs e)
         {
             seqBeam.disconnect();
+            sa.Close();
             btnStop.Enabled = false;
             btnStart.Enabled = true;
         }
