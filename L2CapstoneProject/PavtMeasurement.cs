@@ -120,6 +120,7 @@ namespace L2CapstoneProject
             }
             return resultsArray;
         }
+
         public void Close()
         {
             instrSession?.Close();

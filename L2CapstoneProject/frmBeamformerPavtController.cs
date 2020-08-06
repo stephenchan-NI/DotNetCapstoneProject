@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.Threading;
 using NationalInstruments.ModularInstruments.NIRfsg;
 using NationalInstruments.RFmx.InstrMX;
 using NationalInstruments.ModularInstruments.SystemServices.DeviceServices;
@@ -14,6 +15,7 @@ namespace L2CapstoneProject
         PavtMeasurement sa;
         RfsgSequencedBeamformer seqBeam;
         bool stopping = false;
+        private delegate void SafeCallDelegate(PhaseAmplitudeOffset[] results);
 
         public struct PhaseAmplitudeOffset 
         {
@@ -194,9 +196,10 @@ namespace L2CapstoneProject
         {
             btnStop.Enabled = true;
             btnStart.Enabled = false;
+            stopping = false;
             lsvResults.Items.Clear();
             List<PhaseAmplitudeOffset> offsetTable = new List<PhaseAmplitudeOffset>();
-            PhaseAmplitudeOffset[] results = new PhaseAmplitudeOffset[0];
+            
           
             foreach (ListViewItem item in lsvOffsets.Items)
             {
@@ -214,33 +217,51 @@ namespace L2CapstoneProject
             sa = new PavtMeasurement(rfsaNameComboBox.Text, Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value), Convert.ToDouble(measurementLengthNumeric.Value), Convert.ToDouble(measurementOffsetNumeric.Value), offsetTable.Count);
             sa.connectRFmx();
 
+            Thread acq = new Thread(new ThreadStart(ContinuousFetch));
+            acq.Start();
+            acq.
         }
 
         private void ContinuousFetch()
         {
+            PhaseAmplitudeOffset[] results = new PhaseAmplitudeOffset[0];
             while (!stopping)
             {
                 sa.initiateMeasure();
                 results = sa.FetchResults();
                 PopulateResultsBox(results);
             }
+            if (stopping)
+                return;
         }
 
         private void PopulateResultsBox(PhaseAmplitudeOffset[] results)
         {
-            int i = 0;
-            foreach (PhaseAmplitudeOffset result in results)
+            if (lsvResults.InvokeRequired)
             {
-                ListViewItem tempItem = new ListViewItem(i.ToString());
-                tempItem.SubItems.Add(result.phase.ToString());
-                tempItem.SubItems.Add(result.amplitude.ToString());
-                lsvResults.Items.Add(tempItem);
-                i++;
+                var d = new SafeCallDelegate(PopulateResultsBox);
+                lsvResults.Invoke(d, new object[] { results });
+            }
+            else
+            {
+                lsvResults.Items.Clear();
+                int i = 0;
+                foreach (PhaseAmplitudeOffset result in results)
+                {
+                    ListViewItem tempItem = new ListViewItem(i.ToString());
+                    tempItem.SubItems.Add(result.phase.ToString());
+                    tempItem.SubItems.Add(result.amplitude.ToString());
+                    lsvResults.Items.Add(tempItem);
+                    i++;
+                }
             }
         }
 
         private void btnStop_Click(object sender, EventArgs e)
         {
+            stopping = true;
+            Thread.Sleep(100);
+            //Wait for thread to finish fetching
             seqBeam.disconnect();
             sa.Close();
             btnStop.Enabled = false;
