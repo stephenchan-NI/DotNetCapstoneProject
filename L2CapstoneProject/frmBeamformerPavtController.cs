@@ -5,6 +5,7 @@ using NationalInstruments.ModularInstruments.NIRfsg;
 using NationalInstruments.RFmx.InstrMX;
 using NationalInstruments.ModularInstruments.SystemServices.DeviceServices;
 using System.Collections.Generic;
+using Ivi.Driver;
 
 namespace L2CapstoneProject
 {
@@ -194,32 +195,46 @@ namespace L2CapstoneProject
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            btnStop.Enabled = true;
-            btnStart.Enabled = false;
-            stopping = false;
-            lsvResults.Items.Clear();
-            List<PhaseAmplitudeOffset> offsetTable = new List<PhaseAmplitudeOffset>();
-            
-          
-            foreach (ListViewItem item in lsvOffsets.Items)
+            try
             {
-                PhaseAmplitudeOffset tempSet = new PhaseAmplitudeOffset();
-                tempSet.phase = Convert.ToDouble(item.Text);
-                tempSet.amplitude = Convert.ToDouble(item.SubItems[1].Text);
+                stopping = false;
+                lsvResults.Items.Clear();
+                List<PhaseAmplitudeOffset> offsetTable = new List<PhaseAmplitudeOffset>();
 
-                offsetTable.Add(tempSet);
+
+                foreach (ListViewItem item in lsvOffsets.Items)
+                {
+                    PhaseAmplitudeOffset tempSet = new PhaseAmplitudeOffset();
+                    tempSet.phase = Convert.ToDouble(item.Text);
+                    tempSet.amplitude = Convert.ToDouble(item.SubItems[1].Text);
+
+                    offsetTable.Add(tempSet);
+                }
+
+                seqBeam = new RfsgSequencedBeamformer(decimal.ToDouble(measurementLengthNumeric.Value), rfsgNameComboBox.SelectedItem.ToString(), Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value));
+                seqBeam.downloadPhaseAmplitudeOffset(offsetTable);
+                seqBeam.connect();
+
+                sa = new PavtMeasurement(rfsaNameComboBox.Text, Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value), Convert.ToDouble(measurementLengthNumeric.Value), Convert.ToDouble(measurementOffsetNumeric.Value), offsetTable.Count);
+                sa.connectRFmx();
+
+                Thread acq = new Thread(new ThreadStart(ContinuousFetch));
+                acq.Start();
+                btnStop.Enabled = true;
+                btnStart.Enabled = false;
+                errorTextBox.Text = "No error.";
             }
+            catch(IndexOutOfRangeException error)
+            {
+                errorTextBox.Text = error.Message + "\n\n Please enter offsets and select Start again";
+            }
+            catch (IviCDriverException error)
+            {
+                errorTextBox.Text = error.Message + "\n\n Please change power or frequency and select Start again";
+            }
+            
 
-            seqBeam = new RfsgSequencedBeamformer(decimal.ToDouble(measurementLengthNumeric.Value), rfsgNameComboBox.SelectedItem.ToString(), Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value));
-            seqBeam.downloadPhaseAmplitudeOffset(offsetTable);
-            seqBeam.connect();
 
-            sa = new PavtMeasurement(rfsaNameComboBox.Text, Convert.ToDouble(powerLevelNumeric.Value), Convert.ToDouble(frequencyNumeric.Value), Convert.ToDouble(measurementLengthNumeric.Value), Convert.ToDouble(measurementOffsetNumeric.Value), offsetTable.Count);
-            sa.connectRFmx();
-
-            Thread acq = new Thread(new ThreadStart(ContinuousFetch));
-            acq.Start();
-            acq.
         }
 
         private void ContinuousFetch()
@@ -230,6 +245,8 @@ namespace L2CapstoneProject
                 sa.initiateMeasure();
                 results = sa.FetchResults();
                 PopulateResultsBox(results);
+                Thread.Sleep(250);  //Added to make update on GUI more smooth as it refreshes - AJS
+                
             }
             if (stopping)
                 return;

@@ -47,8 +47,8 @@ namespace L2CapstoneProject
             resourceName = rfsaName;
             refLevel = refLvl;
             freq = frequency;
-            segmentLength = measLength/1e6;
-            measureOffset = measOffset/1e6;
+            segmentLength = Convert.ToDouble(measLength/1e6);
+            measureOffset = Convert.ToDouble(measOffset/1e6);
             numSeg = numSegments;
             
         }
@@ -69,7 +69,7 @@ namespace L2CapstoneProject
             segmentStartTime = new double[numSeg];
             for (int i = 0; i < numSeg; i++)
             {
-                segmentStartTime[i] = segmentLength * i;
+                segmentStartTime[i] = (segmentLength * i) + measureOffset;
             }
 
             //measurementLength = numSeg * segmentLength;
